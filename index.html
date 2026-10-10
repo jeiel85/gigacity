@@ -1,75 +1,438 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gigacity</title>
-<meta name="description" content="Every tower, car and light grown from one seed.">
+<title>Gigacity — a flying-car city grown from one seed</title>
+<meta name="description" content="Every tower, car and light grown from one seed. A procedural cyberpunk city with 16,000 flying cars, running live in your browser.">
+<meta property="og:title" content="Gigacity">
+<meta property="og:description" content="Every tower, car and light grown from one seed. Fly it live in your browser.">
+<meta property="og:image" content="https://jeiel85.github.io/gigacity/assets/night-skyline.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#05070d">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f1a'/%3E%3Cpath d='M5 30V11h5v19M11 30V5h6v25M18 30V14h4v16M23 30V8h5v22' fill='%23394560'/%3E%3Crect x='8' y='18' width='16' height='2' rx='1' fill='%23ff3b3b'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05070d;
+    --panel: rgba(14, 19, 32, 0.72);
+    --line: rgba(255, 255, 255, 0.09);
+    --text: #eef2fa;
+    --dim: #8f9bb3;
+    --accent: #7fd0ff;
+    --hot: #ff4a4a;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --sans: 'Outfit', system-ui, sans-serif;
   }
-}
-</script>
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 400 17px/1.6 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+
+  .wrap { width: min(1120px, 100% - 32px); margin: 0 auto; }
+
+  /* ---------- hero */
+  .hero {
+    position: relative;
+    min-height: 92vh;
+    display: grid;
+    align-items: end;
+    padding: 0 0 72px;
+    overflow: hidden;
+  }
+
+  .hero picture, .hero img.bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    animation: drift 30s ease-in-out infinite alternate;
+  }
+
+  @keyframes drift {
+    from { transform: scale(1.04) translateY(0); }
+    to { transform: scale(1.12) translateY(-2%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero img.bg { animation: none; transform: scale(1.04); }
+  }
+
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(5, 7, 13, 0.55) 0%, rgba(5, 7, 13, 0) 30%),
+      linear-gradient(0deg, var(--bg) 2%, rgba(5, 7, 13, 0.55) 40%, rgba(5, 7, 13, 0) 75%);
+  }
+
+  .topbar {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 0;
+  }
+
+  .topbar .wrap { display: flex; justify-content: space-between; align-items: center; }
+
+  .logo { font: 800 18px var(--sans); letter-spacing: 0.04em; text-decoration: none; }
+  .logo span { color: var(--hot); }
+
+  .topbar nav { display: flex; gap: 22px; font: 500 13px var(--mono); letter-spacing: 0.04em; }
+  .topbar nav a { color: var(--dim); text-decoration: none; }
+  .topbar nav a:hover { color: var(--text); }
+
+  .hero .wrap { position: relative; z-index: 1; }
+
+  .kicker {
+    font: 600 15px var(--sans);
+    letter-spacing: 0.14em;
+    color: var(--accent);
+  }
+
+  h1 {
+    margin: 6px 0 14px;
+    font: 800 clamp(64px, 13vw, 168px)/0.9 var(--sans);
+    letter-spacing: -0.02em;
+    text-shadow: 0 6px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .lede { max-width: 560px; margin: 0 0 30px; font-size: 20px; color: #c9d2e3; }
+
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 22px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    backdrop-filter: blur(10px);
+    font: 600 16px var(--sans);
+    text-decoration: none;
+    transition: transform 0.15s, filter 0.15s, background 0.15s;
+  }
+
+  .btn:hover { transform: translateY(-1px); background: rgba(30, 38, 58, 0.8); }
+  .btn.primary { background: var(--hot); border-color: transparent; box-shadow: 0 10px 30px rgba(255, 74, 74, 0.35); }
+  .btn.primary:hover { filter: brightness(1.08); background: var(--hot); }
+  .btn svg { width: 18px; height: 18px; }
+
+  .stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 40px;
+  }
+
+  .stat {
+    min-width: 132px;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--panel);
+    backdrop-filter: blur(10px);
+  }
+
+  .stat span { display: block; font: 500 10.5px var(--mono); letter-spacing: 0.1em; color: var(--dim); }
+  .stat b { display: block; margin-top: 2px; font: 700 22px var(--mono); }
+  .stat:first-child b { color: var(--accent); }
+
+  /* ---------- sections */
+  section { padding: 96px 0 0; }
+
+  h2 {
+    margin: 0 0 8px;
+    font: 800 clamp(32px, 5vw, 48px)/1.05 var(--sans);
+    letter-spacing: -0.01em;
+  }
+
+  .sub { margin: 0 0 36px; color: var(--dim); max-width: 620px; }
+
+  .label { font: 500 12px var(--mono); letter-spacing: 0.12em; color: var(--hot); margin-bottom: 10px; }
+
+  /* sky cards */
+  .skies { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+  .sky {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    text-decoration: none;
+  }
+
+  .sky img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .sky:hover img { transform: scale(1.06); }
+
+  .sky::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(5, 7, 13, 0.92) 0%, rgba(5, 7, 13, 0) 55%);
+  }
+
+  .sky div { position: absolute; z-index: 1; left: 20px; right: 20px; bottom: 18px; }
+  .sky strong { display: block; font: 800 28px var(--sans); }
+  .sky small { display: block; color: #b9c3d6; font-size: 15px; }
+  .sky em { display: inline-block; margin-top: 10px; font: 500 12px var(--mono); font-style: normal; color: var(--accent); letter-spacing: 0.06em; }
+
+  /* features */
+  .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+
+  .feature {
+    padding: 26px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(20, 27, 44, 0.7), rgba(10, 14, 24, 0.7));
+  }
+
+  .feature h3 { margin: 0 0 6px; font: 700 21px var(--sans); }
+  .feature p { margin: 0; color: var(--dim); font-size: 16px; }
+  .feature .num { font: 700 13px var(--mono); color: var(--accent); letter-spacing: 0.08em; margin-bottom: 14px; }
+
+  .wide {
+    margin-top: 16px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+
+  .wide img { display: block; width: 100%; height: auto; }
+
+  /* controls */
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .key {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--panel);
+  }
+
+  kbd {
+    flex: 0 0 auto;
+    min-width: 54px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-bottom-width: 3px;
+    border-radius: 8px;
+    background: #121828;
+    font: 700 13px var(--mono);
+    text-align: center;
+  }
+
+  .key span { color: #c9d2e3; font-size: 15px; }
+
+  /* final cta */
+  .final {
+    margin-top: 96px;
+    padding: 64px 32px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(120% 140% at 50% 120%, rgba(255, 74, 74, 0.25), rgba(255, 74, 74, 0) 60%),
+      radial-gradient(90% 120% at 50% -20%, rgba(127, 208, 255, 0.18), rgba(127, 208, 255, 0) 60%),
+      #0a0e18;
+    text-align: center;
+  }
+
+  .final .cta { justify-content: center; }
+  .final p { color: var(--dim); margin: 0 auto 28px; max-width: 520px; }
+
+  .seedlink { font: 500 14px var(--mono); color: var(--accent); }
+
+  footer {
+    padding: 48px 0 40px;
+    color: var(--dim);
+    font: 500 13px var(--mono);
+  }
+
+  footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+  footer a { color: var(--dim); }
+  footer a:hover { color: var(--text); }
+
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  @media (max-width: 860px) {
+    .skies { grid-template-columns: 1fr; }
+    .sky { aspect-ratio: 16 / 10; }
+    .features { grid-template-columns: 1fr; }
+    .controls { grid-template-columns: 1fr 1fr; }
+    .topbar nav a.hide-sm { display: none; }
+  }
+
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .hero { min-height: 88vh; padding-bottom: 48px; }
+    .lede { font-size: 17px; }
+    .controls { grid-template-columns: 1fr; }
+    .stat { min-width: 0; flex: 1 1 40%; }
+    .btn { flex: 1 1 auto; justify-content: center; }
+    section { padding-top: 72px; }
+    .final { padding: 44px 20px; }
+  }
+</style>
 </head>
 <body>
-<canvas id="c"></canvas>
 
-<header id="hud">
-  <div class="kicker">GROWN FROM ONE SEED</div>
-  <h1>GIGACITY</h1>
-  <div class="stats">
-    <div class="stat"><span>TOWERS</span><b id="sTowers">–</b></div>
-    <div class="stat"><span>CARS ALOFT</span><b id="sCars">–</b></div>
-    <div class="stat"><span>LIT ROOMS</span><b id="sLit">–</b></div>
+<header class="hero">
+  <img class="bg" src="assets/night-lowangle.jpg" alt="" fetchpriority="high">
+  <div class="topbar">
+    <div class="wrap">
+      <a class="logo" href="./">GIGACITY<span>.</span></a>
+      <nav>
+        <a class="hide-sm" href="#skies">Skies</a>
+        <a class="hide-sm" href="#how">How it works</a>
+        <a href="https://github.com/jeiel85/gigacity">GitHub</a>
+      </nav>
+    </div>
   </div>
-  <div class="perf">
-    <b id="fps">–</b> FPS <b id="draws">–</b> DRAWS <b id="tris">–</b> TRIANGLES SEED <b id="seedLbl">–</b>
-  </div>
-  <div class="api">WEBGL2</div>
-  <div class="badges">
-    <span id="badgeTurbo" class="badge">TURBO</span>
-    <span id="badgeHover" class="badge">HOVER</span>
+  <div class="wrap">
+    <div class="kicker">GROWN FROM ONE SEED</div>
+    <h1>GIGACITY</h1>
+    <p class="lede">Every tower, car and light in this city comes from a single number. Pick a seed, grab the wheel of any flying car and cut through the canyons.</p>
+    <div class="cta">
+      <a class="btn primary" href="app/#seed=4417&amp;sky=night&amp;view=chase">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        Launch live demo
+      </a>
+      <a class="btn" id="random" href="app/">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+        Random city
+      </a>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>TOWERS</span><b>~2,200</b></div>
+      <div class="stat"><span>CARS ALOFT</span><b>16,000</b></div>
+      <div class="stat"><span>LIT AT NIGHT</span><b>~780k</b></div>
+      <div class="stat"><span>BUILD STEP</span><b>NONE</b></div>
+    </div>
   </div>
 </header>
 
-<aside id="panel">
-  <section>
-    <h2>CAMERA</h2>
-    <div class="seg" data-group="view">
-      <button data-v="chase">Chase</button><button data-v="seat">Seat</button><button data-v="drone">Drone</button><button data-v="director">Director</button>
+<main>
+  <section id="skies">
+    <div class="wrap">
+      <div class="label">01 — PICK A SKY</div>
+      <h2>Same seed, three moods.</h2>
+      <p class="sub">The sky changes the sun, the fog, how many rooms have their lights on and how hard the neon blooms. Each card opens the demo in that sky.</p>
+      <div class="skies">
+        <a class="sky" href="app/#seed=4417&amp;sky=day&amp;view=chase">
+          <img src="assets/day-canyon.jpg" alt="Daytime view down a street canyon of glass towers" loading="lazy">
+          <div><strong>Day</strong><small>Glass, haze and low cloud.</small><em>OPEN DAY →</em></div>
+        </a>
+        <a class="sky" href="app/#seed=4417&amp;sky=dusk&amp;view=chase">
+          <img src="assets/dusk-chase.jpg" alt="Chasing a flying car through towers at dusk" loading="lazy">
+          <div><strong>Dusk</strong><small>The city switches on.</small><em>OPEN DUSK →</em></div>
+        </a>
+        <a class="sky" href="app/#seed=4417&amp;sky=night&amp;view=chase">
+          <img src="assets/night-chase.jpg" alt="Night street canyon with lit windows and headlights" loading="lazy">
+          <div><strong>Night</strong><small>Headlight beams and neon.</small><em>OPEN NIGHT →</em></div>
+        </a>
+      </div>
     </div>
   </section>
-  <section>
-    <h2>SKY</h2>
-    <div class="seg" data-group="sky">
-      <button data-v="day">Day</button><button data-v="dusk">Dusk</button><button data-v="night">Night</button>
-    </div>
-  </section>
-  <section>
-    <h2>TRAFFIC <span id="trafficVal">70 %</span></h2>
-    <input type="range" id="traffic" min="0" max="100" value="70" aria-label="Traffic density">
-    <div class="note">100 % = <span id="maxCars">–</span> cars</div>
-  </section>
-  <section>
-    <h2>SEED</h2>
-    <div class="seedrow">
-      <input id="seed" inputmode="numeric" aria-label="Seed">
-      <button id="newCity">New city</button>
-    </div>
-  </section>
-</aside>
 
-<footer id="hint">A D lean · W S climb · ⇧T turbo · ⇧H hover · ⇧V the driver's seat · click any car to chase it</footer>
-<div id="error" hidden></div>
+  <section id="how">
+    <div class="wrap">
+      <div class="label">02 — HOW IT WORKS</div>
+      <h2>One number in, a whole skyline out.</h2>
+      <p class="sub">No assets, no models, no build step. A seeded random generator and a noise field decide everything, and the GPU does the rest.</p>
+      <div class="features">
+        <div class="feature">
+          <div class="num">SEED → SKYLINE</div>
+          <h3>Grown, not modelled</h3>
+          <p>A 30 × 30 street grid is split into lots. A noise field and distance from downtown set each tower's height, setbacks, spire and facade style.</p>
+        </div>
+        <div class="feature">
+          <div class="num">16,000 CARS · 2 DRAW CALLS</div>
+          <h3>Traffic flown by the GPU</h3>
+          <p>Every car is a lane, a speed and a phase. The vertex shader places all of them each frame; the CPU repeats the same math only for the car you click.</p>
+        </div>
+        <div class="feature">
+          <div class="num">~1.4M WINDOWS · 0 TEXTURES</div>
+          <h3>Windows from a hash</h3>
+          <p>Facades draw their window grid in the fragment shader. Rooms switch on by hash, and far grids blend to their average so the skyline never shimmers.</p>
+        </div>
+        <div class="feature">
+          <div class="num">SHAREABLE STATE</div>
+          <h3>The URL is the save file</h3>
+          <p>Seed, sky, camera, position and heading live in the address bar. Copy it, and whoever opens it lands in the same spot of the same city.</p>
+        </div>
+      </div>
+      <div class="wide"><img src="assets/night-skyline.jpg" alt="Aerial night view over the whole city with lit streets and towers" loading="lazy" width="1600" height="900"></div>
+    </div>
+  </section>
 
-<script type="module" src="src/main.js"></script>
+  <section id="controls">
+    <div class="wrap">
+      <div class="label">03 — TAKE THE WHEEL</div>
+      <h2>Four cameras, a few keys.</h2>
+      <p class="sub">Chase, Seat, Drone and Director cameras. Your car flies itself through the canyons and turns at intersections. Steer it whenever you like.</p>
+      <div class="controls">
+        <div class="key"><kbd>A D</kbd><span>Lean across the street</span></div>
+        <div class="key"><kbd>W S</kbd><span>Climb and dive</span></div>
+        <div class="key"><kbd>⇧ T</kbd><span>Turbo</span></div>
+        <div class="key"><kbd>⇧ H</kbd><span>Hover in place</span></div>
+        <div class="key"><kbd>⇧ V</kbd><span>Driver's seat</span></div>
+        <div class="key"><kbd>Click</kbd><span>Take over any car</span></div>
+      </div>
+
+      <div class="final">
+        <h2>Your city is waiting.</h2>
+        <p>Runs in any browser with WebGL2. On a phone it works too. Tap any car to chase it.</p>
+        <div class="cta">
+          <a class="btn primary" href="app/#seed=4417&amp;sky=night&amp;view=director">Watch the director cut</a>
+          <a class="btn" id="random2" href="app/">Try a random seed</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>GIGACITY · three.js · WebGL2</span>
+    <a href="https://github.com/jeiel85/gigacity">github.com/jeiel85/gigacity</a>
+  </div>
+</footer>
+
+<script>
+  // Random-city buttons get a fresh seed each time the page loads.
+  for (const id of ['random', 'random2']) {
+    const seed = Math.floor(Math.random() * 100000);
+    const sky = ['day', 'dusk', 'night'][Math.floor(Math.random() * 3)];
+    document.getElementById(id).href = `app/#seed=${seed}&sky=${sky}&view=chase`;
+  }
+</script>
 </body>
 </html>

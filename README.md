@@ -1,55 +1,108 @@
-# Gigacity
+<div align="center">
 
-시드 하나로 타워·비행차·불빛을 모두 생성하는 절차적 사이버펑크 도시. three.js(WebGL2) 기반 정적 웹 페이지이며 빌드 과정이 없습니다.
+<img src="assets/night-skyline.jpg" alt="Gigacity: aerial night view of the procedural city" width="100%">
 
-## 실행
+# GIGACITY
 
-ES 모듈을 쓰므로 `file://`로는 열리지 않습니다. 아무 정적 서버로 이 폴더를 띄우면 됩니다.
+**Every tower, car and light grown from one seed.**<br>
+시드 숫자 하나로 타워 2천여 개와 비행차 1만 6천 대를 길러내는, 브라우저에서 바로 날아다니는 사이버펑크 도시.
 
-```bash
-python -m http.server 5180 --bind 127.0.0.1
-```
+[![Live demo](https://img.shields.io/badge/▶_Live_demo-ff4a4a?style=for-the-badge)](https://jeiel85.github.io/gigacity/)
+[![Open the city](https://img.shields.io/badge/Open_the_city-0b0f1a?style=for-the-badge)](https://jeiel85.github.io/gigacity/app/#seed=4417&sky=night&view=chase)
 
-브라우저에서 `http://127.0.0.1:5180/` 접속. three.js와 폰트는 CDN(jsdelivr, Google Fonts)에서 받으므로 인터넷 연결이 필요합니다.
+![three.js](https://img.shields.io/badge/three.js-r170-black?logo=threedotjs&logoColor=white)
+![WebGL2](https://img.shields.io/badge/WebGL2-instanced-990000?logo=webgl&logoColor=white)
+![No build step](https://img.shields.io/badge/build_step-none-7fd0ff)
+![Vanilla JS](https://img.shields.io/badge/vanilla-ES_modules-f7df1e?logo=javascript&logoColor=black)
+
+</div>
+
+---
+
+## 한눈에 보기
+
+| | |
+| --- | --- |
+| <img src="assets/night-lowangle.jpg" alt="Looking up at flying cars between night towers"> | <img src="assets/dusk-chase.jpg" alt="Chasing a flying car through towers at dusk"> |
+| **Night, Director 카메라** — 차 아래에서 올려다보는 컷 | **Dusk, Chase 카메라** — 노을 속 협곡 비행 |
+| <img src="assets/day-canyon.jpg" alt="Daytime view down a street canyon"> | <img src="assets/night-chase.jpg" alt="Night street canyon with headlights"> |
+| **Day** — 유리 외벽, 안개, 낮은 구름 | **Night** — 전조등 빔과 네온 |
+
+## 특징
+
+- 🌱 **시드 하나로 생성** — 30 × 30 격자의 필지마다 노이즈 필드와 도심 거리로 높이·셋백·첨탑·외벽 스타일을 정합니다. 같은 시드는 언제나 같은 도시입니다.
+- 🚗 **GPU가 모는 교통** — 16,000대 전부를 차선·속도·위상만으로 정점 셰이더가 매 프레임 배치합니다. 차체와 전조등 빔을 합쳐 드로우 콜 2번입니다.
+- 🪟 **텍스처 없는 창문 ~140만 개** — 프래그먼트 셰이더가 창문 격자를 그리고, 방 단위 해시로 불을 켭니다. 멀리 있는 격자는 평균색으로 섞여 모아레가 생기지 않습니다.
+- 🎥 **카메라 4종** — Chase(추적) · Seat(운전석) · Drone(자유 궤도) · Director(자동 컷 전환)
+- 🌇 **하늘 3종** — Day · Dusk · Night. 해, 안개, 불 켜진 방 비율, 블룸 세기가 부드럽게 전환됩니다.
+- 🔗 **URL이 곧 저장 파일** — 시드·하늘·카메라·위치·방향이 주소창에 기록되어 링크만 보내면 같은 장면이 열립니다.
 
 ## 조작
 
 | 입력 | 동작 |
-| --- | --- |
-| A / D | 좌우로 기울여 도로 폭 안에서 이동 |
-| W / S | 상승 / 하강 |
-| ⇧T | 터보 토글 |
-| ⇧H | 호버(정지) 토글 |
-| ⇧V | 운전석 시점 토글 |
-| 차 클릭 | 그 차로 갈아타 추적 |
+| :---: | --- |
+| <kbd>A</kbd> <kbd>D</kbd> | 도로 폭 안에서 좌우로 기울여 이동 |
+| <kbd>W</kbd> <kbd>S</kbd> | 상승 / 하강 |
+| <kbd>⇧</kbd> <kbd>T</kbd> | 터보 토글 |
+| <kbd>⇧</kbd> <kbd>H</kbd> | 호버(정지) 토글 |
+| <kbd>⇧</kbd> <kbd>V</kbd> | 운전석 시점 토글 |
+| 차 클릭 / 탭 | 그 차로 갈아타 추적 |
 
-카메라: Chase(추적) · Seat(운전석) · Drone(자유 궤도, 드래그) · Director(자동 컷 전환).
+내 차는 손을 떼도 협곡을 따라 스스로 날고 교차로에서 방향을 틉니다. 도시 끝에 닿기 전에는 반드시 돌아섭니다.
 
-## URL 상태
-
-현재 상태가 해시에 계속 기록되어 그대로 공유할 수 있습니다.
+## URL 파라미터
 
 ```
-#seed=4417&sky=night&view=chase&at=825.3,145.3,849.0&look=119,-5&traffic=70
+app/#seed=4417&sky=night&view=chase&at=825.3,145.3,849.0&look=119,-5&traffic=70
 ```
 
-- `seed` 0–99999, `sky` day|dusk|night, `view` chase|seat|drone|director
-- `at` 위치(drone은 카메라, 그 외는 주인공 차), `look` 요·피치(도)
-- `traffic` 0–100, 기본값 70이면 생략
+| 키 | 값 | 설명 |
+| --- | --- | --- |
+| `seed` | `0`–`99999` | 도시 시드. 없으면 무작위 |
+| `sky` | `day` · `dusk` · `night` | 하늘 |
+| `view` | `chase` · `seat` · `drone` · `director` | 카메라 |
+| `at` | `x,y,z` | 위치 (drone은 카메라, 그 외는 내 차) |
+| `look` | `yaw,pitch` | 바라보는 방향(도) |
+| `traffic` | `0`–`100` | 교통량 %. 기본 70이면 생략 |
+
+## 로컬 실행
+
+빌드 과정이 없는 정적 사이트입니다. ES 모듈을 쓰므로 `file://` 대신 정적 서버로 띄우세요.
+
+```bash
+git clone https://github.com/jeiel85/gigacity.git
+cd gigacity
+python -m http.server 5180 --bind 127.0.0.1
+```
+
+`http://127.0.0.1:5180/` 이 랜딩 페이지, `http://127.0.0.1:5180/app/` 이 도시입니다. three.js와 폰트는 CDN에서 받으므로 인터넷 연결이 필요합니다.
 
 ## 구조
 
-| 파일 | 역할 |
-| --- | --- |
-| `src/rng.js` | 시드 RNG(mulberry32)와 value noise |
-| `src/city.js` | 격자·블록·타워/네온/경고등/지면 생성 |
-| `src/traffic.js` | 차선·차량 생성, GPU 인스턴싱, CPU 위치 계산 |
-| `src/shaders.js` | 모든 GLSL(창문 패턴, 안개, 차량 배치) |
-| `src/sky.js` | Day/Dusk/Night 프리셋, 하늘·별·구름, 전환 보간 |
-| `src/hero.js` | 주인공 차 자동 비행과 키 조작 |
-| `src/cameras.js` | 네 가지 카메라 모드 |
-| `src/main.js` | 렌더러·포스트(블룸)·UI·입력·URL 해시 |
+```
+gigacity/
+├── index.html          랜딩 페이지 (GitHub Pages 루트)
+├── assets/             스크린샷
+└── app/
+    ├── index.html      도시 앱 + HUD/패널
+    ├── style.css
+    └── src/
+        ├── rng.js      시드 RNG(mulberry32), value noise
+        ├── city.js     격자·필지·타워/네온/경고등/지면
+        ├── traffic.js  차선·차량 생성, 인스턴싱, CPU 위치 계산
+        ├── shaders.js  모든 GLSL (창문, 안개, 차량 배치)
+        ├── sky.js      하늘 프리셋, 별·구름, 전환 보간
+        ├── hero.js     내 차 자동 비행과 키 조작
+        ├── cameras.js  카메라 4종
+        └── main.js     렌더러·블룸·UI·입력·URL 해시
+```
 
-차량 위치는 셰이더가 차선 파라미터와 시간으로 직접 계산합니다(`CAR_PLACE`). 클릭 선택과 Director 카메라는 `traffic.carPos()`가 같은 식을 CPU에서 재현해 씁니다. 두 식은 항상 같이 고쳐야 합니다.
+### 고칠 때 주의할 점
 
-창문 셀 크기는 `city.js`의 `CELLS`(조명 창 개수 통계)와 `shaders.js`의 `cellFor()`(렌더링)에 중복되어 있어 함께 맞춰야 합니다.
+- 차량 위치는 셰이더(`CAR_PLACE`)가 계산하고, 클릭 선택과 Director 카메라는 `traffic.carPos()`가 같은 식을 CPU에서 재현합니다. **두 식은 항상 같이** 고쳐야 합니다.
+- 창문 셀 크기는 `city.js`의 `CELLS`(창 개수 통계)와 `shaders.js`의 `cellFor()`(렌더링)에 중복되어 있습니다.
+- 브라우저 콘솔의 `window.gigacity`로 실행 중인 상태(`hero`, `world`, `camera` 등)를 볼 수 있습니다.
+
+## 크레딧
+
+[sael.net/gigacity](https://sael.net/gigacity/)에서 영감을 받아 새로 구현했습니다. 렌더링은 [three.js](https://threejs.org/)를 씁니다.

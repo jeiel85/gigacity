@@ -1,11 +1,21 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CAR_SCALE } from './traffic.js';
+import { streetLines, nearestStreetIndex } from './city.js';
 
 export const VIEWS = ['chase', 'seat', 'drone', 'director'];
 const FLIP = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const SHOTS = ['side', 'low', 'aerial', 'front', 'flyby'];
 const BASE_FOV = 62;
+
+// Puts `pos` on the far side of the street canyon from the car at `p`, `dist` units
+// from the centreline, so director cameras never end up inside a tower.
+function acrossStreet(pos, p, dx, dist) {
+  const key = dx !== 0 ? 'z' : 'x';
+  const line = streetLines[nearestStreetIndex(p[key])];
+  pos[key] = line - Math.sign(p[key] - line || 1) * dist;
+  return pos;
+}
 
 export class CameraRig {
   constructor(camera, dom, hero, getTraffic) {
@@ -84,21 +94,20 @@ export class CameraRig {
     if (!this.shot || t > this.shot.end || this.shot.i >= tr.count || this.shot.i === tr.hidden) {
       const i = Math.floor(Math.random() * tr.count);
       const type = SHOTS[Math.floor(Math.random() * SHOTS.length)];
-      this.shot = { i, type, end: t + 5 + Math.random() * 3, side: Math.random() < 0.5 ? 1 : -1 };
+      this.shot = { i, type, end: t + 5 + Math.random() * 3 };
       if (type === 'flyby') {
         const p = tr.carPos(i, t + 2.6, new THREE.Vector3());
         const [dx, dz] = tr.carDir(i);
-        this.shot.fixed = p.add(new THREE.Vector3(-dz, 0, dx).multiplyScalar(13 * this.shot.side)).setY(p.y + 3);
+        this.shot.fixed = acrossStreet(p.clone(), p, dx, 8).setY(p.y + 3);
       }
     }
-    const { i, type, side } = this.shot;
+    const { i, type } = this.shot;
     const p = tr.carPos(i, t, this._v);
     const [dx, dz] = tr.carDir(i);
     const fwd = new THREE.Vector3(dx, 0, dz);
-    const right = new THREE.Vector3(-dz, 0, dx).multiplyScalar(side);
     const pos = this._w.copy(p);
-    if (type === 'side') pos.addScaledVector(right, 14).addScaledVector(fwd, -4).y += 3;
-    else if (type === 'low') pos.addScaledVector(right, 6).addScaledVector(fwd, -6).y -= 22;
+    if (type === 'side') acrossStreet(pos, p, dx, 7).addScaledVector(fwd, -4).y += 3;
+    else if (type === 'low') acrossStreet(pos, p, dx, 3).addScaledVector(fwd, -6).y -= 22;
     else if (type === 'aerial') pos.addScaledVector(fwd, -30).y += 45;
     else if (type === 'front') pos.addScaledVector(fwd, 18).y += 1.5;
     else pos.copy(this.shot.fixed);

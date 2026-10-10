@@ -311,4 +311,4 @@ function frame(now) {
 requestAnimationFrame(frame);
 
 // Console handle for inspecting the running city (e.g. gigacity.hero.pos).
-window.gigacity = { hero, rig, camera, renderer, U, get world() { return world; }, get time() { return time; } };
+window.gigacity = { hero, rig, camera, renderer, composer, sky, U, get world() { return world; }, get time() { return time; } };
