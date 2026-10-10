@@ -7,6 +7,8 @@ export const VIEWS = ['chase', 'seat', 'drone', 'director'];
 const FLIP = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
 const SHOTS = ['side', 'low', 'aerial', 'front', 'flyby'];
 const BASE_FOV = 62;
+const CHASE_ELEVATION = Math.atan2(4.5, 16);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 // Puts `pos` on the far side of the street canyon from the car at `p`, `dist` units
 // from the centreline, so director cameras never end up inside a tower.
@@ -31,8 +33,14 @@ export class CameraRig {
     this.lookOffset = new THREE.Vector3();
     this.snap = true;
     this.shot = null;
+    // Player look offsets around the car (chase) or the driver's head (seat).
+    this.orbitYaw = 0;
+    this.orbitPitch = 0;
+    this.zoom = 1;
     this._v = new THREE.Vector3();
     this._w = new THREE.Vector3();
+    this._q = new THREE.Quaternion();
+    this._e = new THREE.Euler();
   }
 
   setMode(mode) {
@@ -42,6 +50,45 @@ export class CameraRig {
     if (this.hero.body) this.hero.body.visible = mode !== 'seat';
     this.shot = null;
     this.snap = true;
+    this.resetView();
+  }
+
+  get steerable() {
+    return this.mode === 'chase' || this.mode === 'seat';
+  }
+
+  look(dxPixels, dyPixels) {
+    if (!this.steerable) return;
+    this.orbitYaw -= dxPixels * 0.005;
+    this.orbitPitch += dyPixels * 0.004;
+    this.clampLook();
+  }
+
+  orbit(direction, dt) {
+    if (!this.steerable) return;
+    this.orbitYaw += direction * 1.8 * dt;
+    this.clampLook();
+  }
+
+  zoomBy(deltaY) {
+    if (this.mode !== 'chase') return;
+    this.zoom = clamp(this.zoom * Math.exp(deltaY * 0.001), 0.45, 5);
+  }
+
+  resetView() {
+    this.orbitYaw = 0;
+    this.orbitPitch = 0;
+    this.zoom = 1;
+  }
+
+  clampLook() {
+    if (this.mode === 'seat') {
+      this.orbitYaw = clamp(this.orbitYaw, -2.4, 2.4);
+      this.orbitPitch = clamp(this.orbitPitch, -1.1, 1.1);
+    } else {
+      this.orbitYaw = Math.atan2(Math.sin(this.orbitYaw), Math.cos(this.orbitYaw));
+      this.orbitPitch = clamp(this.orbitPitch, -CHASE_ELEVATION - 0.3, 1.3 - CHASE_ELEVATION);
+    }
   }
 
   update(dt, t) {
@@ -57,9 +104,13 @@ export class CameraRig {
     if (this.mode === 'chase') {
       // Offsets are smoothed in the car's frame, so the camera never lags with speed.
       const fwd = h.forward;
-      const back = (h.turbo ? 22 : 16) * (cam.aspect < 1 ? 1.7 : 1);
-      this.offset.lerp(this._v.copy(fwd).multiplyScalar(-back).setY(4.5 - h.pitch * 10), k);
-      this.lookOffset.lerp(this._w.copy(fwd).multiplyScalar(30).setY(2.5), k);
+      const dist = (h.turbo ? 22 : 16) * (cam.aspect < 1 ? 1.7 : 1) * this.zoom;
+      const yaw = h.yaw + Math.PI + this.orbitYaw;
+      const elev = CHASE_ELEVATION + this.orbitPitch;
+      this.offset.lerp(this._v.set(Math.sin(yaw) * Math.cos(elev), Math.sin(elev), Math.cos(yaw) * Math.cos(elev)).multiplyScalar(dist), k);
+      // Look down the road when behind the car; at the car itself when orbiting around it.
+      const ahead = clamp(1 - Math.abs(this.orbitYaw) / 0.6, 0, 1);
+      this.lookOffset.lerp(this._w.copy(fwd).multiplyScalar(30 * ahead).setY(2.5 * ahead), k);
       cam.position.copy(h.group.position).add(this.offset);
       cam.up.set(0, 1, 0);
       cam.lookAt(this._v.copy(h.group.position).add(this.lookOffset));
@@ -67,7 +118,8 @@ export class CameraRig {
     } else if (this.mode === 'seat') {
       h.group.updateMatrixWorld();
       cam.position.set(0, 1.0 * CAR_SCALE, 0.5 * CAR_SCALE).applyMatrix4(h.group.matrixWorld);
-      cam.quaternion.copy(h.group.quaternion).multiply(FLIP);
+      cam.quaternion.copy(h.group.quaternion).multiply(FLIP)
+        .multiply(this._q.setFromEuler(this._e.set(-this.orbitPitch, this.orbitYaw, 0, 'YXZ')));
       fov = 72 + Math.max(0, h.speed / h.baseSpeed - 1) * 8;
     } else if (this.mode === 'drone') {
       this.controls.update();

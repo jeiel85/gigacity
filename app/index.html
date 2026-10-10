@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gigacity</title>
-<meta name="description" content="Every tower, car and light grown from one seed.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f1a'/%3E%3Cpath d='M5 30V11h5v19M11 30V5h6v25M18 30V14h4v16M23 30V8h5v22' fill='%23394560'/%3E%3Crect x='8' y='18' width='16' height='2' rx='1' fill='%23ff3b3b'/%3E%3C/svg%3E">
+<title>Neon Sprawl</title>
+<meta name="description" content="A whole flying-car city, grown from a single number.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307091a'/%3E%3Cpath d='M5 30V12h5v18M11 30V5h6v25M18 30V15h4v15M23 30V9h5v21' fill='%232a3156'/%3E%3Crect x='7' y='17' width='18' height='2.4' rx='1.2' fill='%23ff2bd6'/%3E%3Crect x='10' y='21' width='12' height='1.4' rx='.7' fill='%2322e4ff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -23,8 +23,8 @@
 <canvas id="c"></canvas>
 
 <header id="hud">
-  <div class="kicker">GROWN FROM ONE SEED</div>
-  <h1>GIGACITY</h1>
+  <a class="kicker" href="../">ONE SEED · ONE CITY</a>
+  <h1>NEON SPRAWL</h1>
   <div class="stats">
     <div class="stat"><span>TOWERS</span><b id="sTowers">–</b></div>
     <div class="stat"><span>CARS ALOFT</span><b id="sCars">–</b></div>
@@ -37,8 +37,14 @@
   <div class="badges">
     <span id="badgeTurbo" class="badge">TURBO</span>
     <span id="badgeHover" class="badge">HOVER</span>
+    <span id="badgePaused" class="badge cool">PAUSED</span>
   </div>
 </header>
+
+<button id="panelToggle" type="button" aria-controls="panel" aria-expanded="true">
+  <span>Controls</span>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+</button>
 
 <aside id="panel">
   <section>
@@ -59,15 +65,33 @@
     <div class="note">100 % = <span id="maxCars">–</span> cars</div>
   </section>
   <section>
+    <h2>GRAPHICS</h2>
+    <div class="seg" data-group="gfx">
+      <button data-v="auto">Auto</button><button data-v="fast">Fast</button><button data-v="high">High</button><button data-v="ultra">Ultra</button>
+    </div>
+  </section>
+  <section>
     <h2>SEED</h2>
     <div class="seedrow">
       <input id="seed" inputmode="numeric" aria-label="Seed">
       <button id="newCity">New city</button>
     </div>
   </section>
+  <p class="panelhint">Start flying and this panel tucks itself away.</p>
 </aside>
 
-<footer id="hint">A D lean · W S climb · ⇧T turbo · ⇧H hover · ⇧V the driver's seat · click any car to chase it</footer>
+<footer id="hint">
+  <span><kbd>W</kbd><kbd>S</kbd> climb</span>
+  <span><kbd>A</kbd><kbd>D</kbd> lean</span>
+  <span><kbd>Q</kbd><kbd>E</kbd> orbit</span>
+  <span><kbd>⇧T</kbd> turbo</span>
+  <span><kbd>⇧H</kbd> hover</span>
+  <span><kbd>⇧V</kbd> seat</span>
+  <span><kbd>C</kbd> film</span>
+  <span><kbd>R</kbd> reset view</span>
+  <span><kbd>Space</kbd> pause</span>
+  <span class="mouse"><b>drag</b> look · <b>wheel</b> zoom · <b>click</b> a car to chase it</span>
+</footer>
 <div id="error" hidden></div>
 
 <script type="module" src="src/main.js"></script>

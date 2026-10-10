@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gigacity — a flying-car city grown from one seed</title>
-<meta name="description" content="Every tower, car and light grown from one seed. A procedural cyberpunk city with 16,000 flying cars, running live in your browser.">
-<meta property="og:title" content="Gigacity">
-<meta property="og:description" content="Every tower, car and light grown from one seed. Fly it live in your browser.">
-<meta property="og:image" content="https://jeiel85.github.io/gigacity/assets/night-skyline.jpg">
+<title>Neon Sprawl — a flying-car city from a single number</title>
+<meta name="description" content="A whole cyberpunk city from a single number: 2,200 towers and 16,000 flying cars, running live in your browser.">
+<meta property="og:title" content="Neon Sprawl">
+<meta property="og:description" content="A whole cyberpunk city from a single number. Fly it live in your browser.">
+<meta property="og:image" content="https://jeiel85.github.io/neon-sprawl/assets/night-skyline.jpg">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#05070d">
@@ -22,8 +22,8 @@
     --line: rgba(255, 255, 255, 0.09);
     --text: #eef2fa;
     --dim: #8f9bb3;
-    --accent: #7fd0ff;
-    --hot: #ff4a4a;
+    --accent: #22e4ff;
+    --hot: #ff2bd6;
     --mono: 'JetBrains Mono', ui-monospace, monospace;
     --sans: 'Outfit', system-ui, sans-serif;
   }
@@ -50,7 +50,7 @@
     min-height: 92vh;
     display: grid;
     align-items: end;
-    padding: 0 0 72px;
+    padding: 120px 0 72px;
     overflow: hidden;
   }
 
@@ -109,7 +109,7 @@
 
   h1 {
     margin: 6px 0 14px;
-    font: 800 clamp(64px, 13vw, 168px)/0.9 var(--sans);
+    font: 800 clamp(56px, 9.5vw, 132px)/0.92 var(--sans);
     letter-spacing: -0.02em;
     text-shadow: 0 6px 40px rgba(0, 0, 0, 0.45);
   }
@@ -133,7 +133,7 @@
   }
 
   .btn:hover { transform: translateY(-1px); background: rgba(30, 38, 58, 0.8); }
-  .btn.primary { background: var(--hot); border-color: transparent; box-shadow: 0 10px 30px rgba(255, 74, 74, 0.35); }
+  .btn.primary { background: var(--hot); border-color: transparent; box-shadow: 0 10px 30px rgba(255, 43, 214, 0.35); }
   .btn.primary:hover { filter: brightness(1.08); background: var(--hot); }
   .btn svg { width: 18px; height: 18px; }
 
@@ -259,8 +259,8 @@
     border-radius: 18px;
     border: 1px solid var(--line);
     background:
-      radial-gradient(120% 140% at 50% 120%, rgba(255, 74, 74, 0.25), rgba(255, 74, 74, 0) 60%),
-      radial-gradient(90% 120% at 50% -20%, rgba(127, 208, 255, 0.18), rgba(127, 208, 255, 0) 60%),
+      radial-gradient(120% 140% at 50% 120%, rgba(255, 43, 214, 0.25), rgba(255, 43, 214, 0) 60%),
+      radial-gradient(90% 120% at 50% -20%, rgba(34, 228, 255, 0.18), rgba(34, 228, 255, 0) 60%),
       #0a0e18;
     text-align: center;
   }
@@ -308,18 +308,18 @@
   <img class="bg" src="assets/night-lowangle.jpg" alt="" fetchpriority="high">
   <div class="topbar">
     <div class="wrap">
-      <a class="logo" href="./">GIGACITY<span>.</span></a>
+      <a class="logo" href="./">NEON SPRAWL<span>.</span></a>
       <nav>
         <a class="hide-sm" href="#skies">Skies</a>
         <a class="hide-sm" href="#how">How it works</a>
-        <a href="https://github.com/jeiel85/gigacity">GitHub</a>
+        <a href="https://github.com/jeiel85/neon-sprawl">GitHub</a>
       </nav>
     </div>
   </div>
   <div class="wrap">
-    <div class="kicker">GROWN FROM ONE SEED</div>
-    <h1>GIGACITY</h1>
-    <p class="lede">Every tower, car and light in this city comes from a single number. Pick a seed, grab the wheel of any flying car and cut through the canyons.</p>
+    <div class="kicker">ONE SEED · ONE CITY</div>
+    <h1>NEON<br>SPRAWL</h1>
+    <p class="lede">Type in one number and a whole skyline unfolds, streets humming with flying traffic. Grab the wheel of any car and cut through the neon canyons.</p>
     <div class="cta">
       <a class="btn primary" href="app/#seed=4417&amp;sky=night&amp;view=chase">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
@@ -396,14 +396,20 @@
   <section id="controls">
     <div class="wrap">
       <div class="label">03 — TAKE THE WHEEL</div>
-      <h2>Four cameras, a few keys.</h2>
-      <p class="sub">Chase, Seat, Drone and Director cameras. Your car flies itself through the canyons and turns at intersections. Steer it whenever you like.</p>
+      <h2>Four cameras, full control.</h2>
+      <p class="sub">Chase, Seat, Drone and Director cameras. Your car flies itself through the canyons and turns at intersections. Steer it, swing the camera around it, or freeze the whole city mid-flight.</p>
       <div class="controls">
-        <div class="key"><kbd>A D</kbd><span>Lean across the street</span></div>
         <div class="key"><kbd>W S</kbd><span>Climb and dive</span></div>
+        <div class="key"><kbd>A D</kbd><span>Lean across the street</span></div>
+        <div class="key"><kbd>Q E</kbd><span>Orbit the camera</span></div>
         <div class="key"><kbd>⇧ T</kbd><span>Turbo</span></div>
         <div class="key"><kbd>⇧ H</kbd><span>Hover in place</span></div>
         <div class="key"><kbd>⇧ V</kbd><span>Driver's seat</span></div>
+        <div class="key"><kbd>C</kbd><span>Film mode, no UI</span></div>
+        <div class="key"><kbd>R</kbd><span>Reset the view</span></div>
+        <div class="key"><kbd>Space</kbd><span>Pause the city</span></div>
+        <div class="key"><kbd>Drag</kbd><span>Look around</span></div>
+        <div class="key"><kbd>Wheel</kbd><span>Zoom in and out</span></div>
         <div class="key"><kbd>Click</kbd><span>Take over any car</span></div>
       </div>
 
@@ -421,8 +427,8 @@
 
 <footer>
   <div class="wrap">
-    <span>GIGACITY · three.js · WebGL2</span>
-    <a href="https://github.com/jeiel85/gigacity">github.com/jeiel85/gigacity</a>
+    <span>NEON SPRAWL · three.js · WebGL2</span>
+    <a href="https://github.com/jeiel85/neon-sprawl">github.com/jeiel85/neon-sprawl</a>
   </div>
 </footer>
 

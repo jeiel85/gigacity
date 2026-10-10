@@ -9,6 +9,8 @@ import { SKIES, SkyController, makeUniforms } from './sky.js';
 import { Hero } from './hero.js';
 import { CameraRig, VIEWS } from './cameras.js';
 
+const GFX_LEVELS = ['auto', 'fast', 'high', 'ultra'];
+
 const $ = (id) => document.getElementById(id);
 
 // ------------------------------------------------------------ URL state
@@ -26,6 +28,7 @@ function parseHash() {
     sky: SKIES[p.get('sky')] ? p.get('sky') : 'day',
     view: VIEWS.includes(p.get('view')) ? p.get('view') : 'chase',
     traffic: Number.isFinite(traffic) ? Math.min(100, Math.max(0, traffic)) : 70,
+    gfx: GFX_LEVELS.includes(p.get('gfx')) ? p.get('gfx') : 'auto',
     at: nums('at', 3),
     look: nums('look', 2),
   };
@@ -37,6 +40,7 @@ const state = {
   sky: initial.sky,
   view: initial.view,
   traffic: initial.traffic,
+  gfx: initial.gfx,
 };
 
 // ------------------------------------------------------------- renderer
@@ -47,10 +51,18 @@ try {
   renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 } catch (err) {
   $('error').hidden = false;
-  $('error').textContent = `WebGL2를 시작할 수 없습니다: ${err.message}`;
+  $('error').textContent = `Neon Sprawl needs WebGL2, which this browser could not start: ${err.message}`;
   throw err;
 }
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+// Graphics levels are render-resolution scales; Auto steps between Fast and High by frame rate.
+const GFX_RATIO = {
+  fast: 0.6,
+  high: Math.min(window.devicePixelRatio, 1.25),
+  ultra: Math.min(window.devicePixelRatio, 2),
+};
+let autoRatio = GFX_RATIO.high;
+const pixelRatio = () => (state.gfx === 'auto' ? autoRatio : GFX_RATIO[state.gfx]);
+renderer.setPixelRatio(pixelRatio());
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.info.autoReset = false;
@@ -66,6 +78,13 @@ composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), sky.bloom, 0.5, 1.0);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
+
+function applyQuality() {
+  const pr = pixelRatio();
+  if (renderer.getPixelRatio() === pr) return;
+  renderer.setPixelRatio(pr);
+  composer.setPixelRatio(pr);
+}
 
 const hero = new Hero();
 scene.add(hero.group);
@@ -101,15 +120,25 @@ function buildWorld(seed, at = null, look = null) {
 
 const keys = {};
 const input = { left: false, right: false, up: false, down: false };
-const isTyping = (e) => e.target instanceof HTMLInputElement;
+const isTyping = (e) => e.target instanceof HTMLInputElement && e.target.type !== 'range';
+const DRIVE_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyQ', 'KeyE', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+let paused = false;
 
 addEventListener('keydown', (e) => {
   if (isTyping(e)) return;
   keys[e.code] = true;
+  if (DRIVE_KEYS.has(e.code)) collapsePanel();
+  if (e.repeat) return;
   if (e.shiftKey && e.code === 'KeyT') hero.turbo = !hero.turbo;
   else if (e.shiftKey && e.code === 'KeyH') hero.hover = !hero.hover;
   else if (e.shiftKey && e.code === 'KeyV') setView(state.view === 'seat' ? 'chase' : 'seat');
-  else return;
+  else if (!e.shiftKey && e.code === 'KeyR') rig.resetView();
+  else if (!e.shiftKey && e.code === 'KeyC') setFilm(!document.body.classList.contains('film'));
+  else if (e.code === 'Escape' && document.body.classList.contains('film')) setFilm(false);
+  else if (e.code === 'Space') {
+    e.preventDefault(); // keep Space from also pressing a focused button
+    paused = !paused;
+  } else return;
   syncUi();
 });
 addEventListener('keyup', (e) => { keys[e.code] = false; });
@@ -122,9 +151,26 @@ function readInput() {
   input.down = !!(keys.KeyS || keys.ArrowDown);
 }
 
-// Click (not drag) on a car to take it over.
+// Drag to look around the car; click (not drag) on a car to take it over.
 let down = null;
-canvas.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+canvas.addEventListener('pointerdown', (e) => {
+  collapsePanel();
+  down = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, t: performance.now() };
+  if (rig.steerable) canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', (e) => {
+  if (!down) return;
+  rig.look(e.clientX - down.lx, e.clientY - down.ly);
+  down.lx = e.clientX;
+  down.ly = e.clientY;
+});
+canvas.addEventListener('pointercancel', () => { down = null; });
+canvas.addEventListener('wheel', (e) => {
+  collapsePanel();
+  if (!rig.steerable) return; // Drone mode zooms with its own controls
+  e.preventDefault();
+  rig.zoomBy(e.deltaY);
+}, { passive: false });
 canvas.addEventListener('pointerup', (e) => {
   if (!down) return;
   const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
@@ -171,6 +217,20 @@ function setSky(s) {
   syncUi();
 }
 
+// The panel greets the viewer, then gets out of the way once they start flying.
+function setPanel(open) {
+  document.body.classList.toggle('panel-closed', !open);
+  $('panelToggle').setAttribute('aria-expanded', String(open));
+}
+function collapsePanel() {
+  if (!document.body.classList.contains('panel-closed')) setPanel(false);
+}
+$('panelToggle').addEventListener('click', () => setPanel(document.body.classList.contains('panel-closed')));
+
+function setFilm(on) {
+  document.body.classList.toggle('film', on);
+}
+
 function newSeed(seed) {
   state.seed = seed;
   buildWorld(seed);
@@ -182,7 +242,13 @@ for (const group of document.querySelectorAll('.seg')) {
     const b = e.target.closest('button');
     if (!b) return;
     if (group.dataset.group === 'view') setView(b.dataset.v);
-    else setSky(b.dataset.v);
+    else if (group.dataset.group === 'sky') setSky(b.dataset.v);
+    else {
+      state.gfx = b.dataset.v;
+      autoRatio = GFX_RATIO.high;
+      applyQuality();
+      syncUi();
+    }
   });
 }
 $('traffic').addEventListener('input', (e) => {
@@ -200,7 +266,7 @@ $('newCity').addEventListener('click', () => newSeed(Math.floor(Math.random() * 
 function syncUi() {
   for (const b of document.querySelectorAll('.seg button')) {
     const group = b.parentElement.dataset.group;
-    b.classList.toggle('on', b.dataset.v === (group === 'view' ? state.view : state.sky));
+    b.classList.toggle('on', b.dataset.v === state[group]);
   }
   $('traffic').value = state.traffic;
   $('trafficVal').textContent = `${state.traffic} %`;
@@ -208,6 +274,7 @@ function syncUi() {
   $('seedLbl').textContent = state.seed;
   $('badgeTurbo').classList.toggle('on', hero.turbo);
   $('badgeHover').classList.toggle('on', hero.hover);
+  $('badgePaused').classList.toggle('on', paused);
 }
 
 const fmt = (n) => n.toLocaleString('en-US');
@@ -229,7 +296,8 @@ function writeHash() {
   const at = [p.x, p.y, p.z].map((v) => v.toFixed(1)).join(',');
   const look = `${Math.round(yaw)},${Math.round(pitch)}`;
   const traffic = state.traffic === 70 ? '' : `&traffic=${state.traffic}`;
-  history.replaceState(null, '', `#seed=${state.seed}&sky=${state.sky}&view=${state.view}&at=${at}&look=${look}${traffic}`);
+  const gfx = state.gfx === 'auto' ? '' : `&gfx=${state.gfx}`;
+  history.replaceState(null, '', `#seed=${state.seed}&sky=${state.sky}&view=${state.view}&at=${at}&look=${look}${traffic}${gfx}`);
 }
 
 addEventListener('hashchange', () => {
@@ -238,6 +306,8 @@ addEventListener('hashchange', () => {
   sky.set(h.sky);
   state.traffic = h.traffic;
   state.view = h.view;
+  state.gfx = h.gfx;
+  applyQuality();
   if (h.seed !== null && h.seed !== state.seed) {
     state.seed = h.seed;
     buildWorld(h.seed, h.at, h.look);
@@ -282,11 +352,13 @@ function frame(now) {
   }
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  time += dt;
+  const simDt = paused ? 0 : dt; // pause freezes the city; the camera stays free
+  time += simDt;
   U.uTime.value = time;
 
   readInput();
-  hero.update(dt, input);
+  hero.update(simDt, input);
+  rig.orbit((keys.KeyE ? 1 : 0) - (keys.KeyQ ? 1 : 0), dt);
   rig.update(dt, time);
   sky.update(dt, camera);
   bloom.strength = sky.bloom;
@@ -298,7 +370,13 @@ function frame(now) {
   frames++;
   statClock += dt;
   if (statClock >= 0.5) {
-    updateStats(frames / statClock);
+    const fps = frames / statClock;
+    updateStats(fps);
+    if (state.gfx === 'auto' && document.visibilityState === 'visible') {
+      if (fps < 30 && autoRatio > GFX_RATIO.fast) autoRatio = Math.max(GFX_RATIO.fast, autoRatio - 0.15);
+      else if (fps > 55 && autoRatio < GFX_RATIO.high) autoRatio = Math.min(GFX_RATIO.high, autoRatio + 0.1);
+      applyQuality();
+    }
     frames = 0;
     statClock = 0;
   }
@@ -310,5 +388,5 @@ function frame(now) {
 }
 requestAnimationFrame(frame);
 
-// Console handle for inspecting the running city (e.g. gigacity.hero.pos).
-window.gigacity = { hero, rig, camera, renderer, composer, sky, U, get world() { return world; }, get time() { return time; } };
+// Console handle for inspecting the running city (e.g. neonSprawl.hero.pos).
+window.neonSprawl = { hero, rig, camera, renderer, composer, sky, U, get world() { return world; }, get time() { return time; } };
