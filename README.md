@@ -14,6 +14,7 @@
 ![WebGL2](https://img.shields.io/badge/WebGL2-instanced-990000?logo=webgl&logoColor=white)
 ![No build step](https://img.shields.io/badge/build_step-none-22e4ff)
 ![Vanilla JS](https://img.shields.io/badge/vanilla-ES_modules-f7df1e?logo=javascript&logoColor=black)
+[![License: MIT](https://img.shields.io/badge/license-MIT-ff2bd6)](LICENSE)
 
 </div>
 
@@ -117,3 +118,7 @@ neon-sprawl/
 ## 크레딧
 
 [sael.net/gigacity](https://sael.net/gigacity/)에서 영감을 받아 처음부터 새로 구현했습니다. 렌더링은 [three.js](https://threejs.org/)를 씁니다.
+
+## 라이선스
+
+[MIT](LICENSE) © 2026 박용은 (jeiel85)
