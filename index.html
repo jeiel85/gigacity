@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gigacity</title>
+<meta name="description" content="Every tower, car and light grown from one seed.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f1a'/%3E%3Cpath d='M5 30V11h5v19M11 30V5h6v25M18 30V14h4v16M23 30V8h5v22' fill='%23394560'/%3E%3Crect x='8' y='18' width='16' height='2' rx='1' fill='%23ff3b3b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<header id="hud">
+  <div class="kicker">GROWN FROM ONE SEED</div>
+  <h1>GIGACITY</h1>
+  <div class="stats">
+    <div class="stat"><span>TOWERS</span><b id="sTowers">–</b></div>
+    <div class="stat"><span>CARS ALOFT</span><b id="sCars">–</b></div>
+    <div class="stat"><span>LIT ROOMS</span><b id="sLit">–</b></div>
+  </div>
+  <div class="perf">
+    <b id="fps">–</b> FPS <b id="draws">–</b> DRAWS <b id="tris">–</b> TRIANGLES SEED <b id="seedLbl">–</b>
+  </div>
+  <div class="api">WEBGL2</div>
+  <div class="badges">
+    <span id="badgeTurbo" class="badge">TURBO</span>
+    <span id="badgeHover" class="badge">HOVER</span>
+  </div>
+</header>
+
+<aside id="panel">
+  <section>
+    <h2>CAMERA</h2>
+    <div class="seg" data-group="view">
+      <button data-v="chase">Chase</button><button data-v="seat">Seat</button><button data-v="drone">Drone</button><button data-v="director">Director</button>
+    </div>
+  </section>
+  <section>
+    <h2>SKY</h2>
+    <div class="seg" data-group="sky">
+      <button data-v="day">Day</button><button data-v="dusk">Dusk</button><button data-v="night">Night</button>
+    </div>
+  </section>
+  <section>
+    <h2>TRAFFIC <span id="trafficVal">70 %</span></h2>
+    <input type="range" id="traffic" min="0" max="100" value="70" aria-label="Traffic density">
+    <div class="note">100 % = <span id="maxCars">–</span> cars</div>
+  </section>
+  <section>
+    <h2>SEED</h2>
+    <div class="seedrow">
+      <input id="seed" inputmode="numeric" aria-label="Seed">
+      <button id="newCity">New city</button>
+    </div>
+  </section>
+</aside>
+
+<footer id="hint">A D lean · W S climb · ⇧T turbo · ⇧H hover · ⇧V the driver's seat · click any car to chase it</footer>
+<div id="error" hidden></div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

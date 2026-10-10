@@ -1,0 +1,222 @@
+:root {
+  --panel: rgba(9, 13, 22, 0.58);
+  --line: rgba(255, 255, 255, 0.09);
+  --text: #eef2fa;
+  --dim: #8f9bb3;
+  --accent: #7fd0ff;
+  --hot: #ff4a4a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #05070d;
+  color: var(--text);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+#c {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  touch-action: none;
+}
+
+#hud {
+  position: fixed;
+  top: 20px;
+  left: 24px;
+  pointer-events: none;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+
+.kicker {
+  font: 600 15px/1 'Outfit', sans-serif;
+  letter-spacing: 0.06em;
+}
+
+h1 {
+  margin: 4px 0 14px;
+  font: 800 46px/1 'Outfit', sans-serif;
+  letter-spacing: 0.01em;
+}
+
+.stats { display: flex; gap: 8px; }
+
+.stat {
+  min-width: 98px;
+  padding: 7px 10px 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+}
+
+.stat span {
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+}
+
+.stat b {
+  display: block;
+  margin-top: 3px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat:not(:first-child) b { color: var(--text); }
+
+.perf, .api {
+  margin-top: 12px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+}
+
+.perf b { color: var(--text); margin-left: 4px; }
+.perf b:first-child { margin-left: 0; }
+.api { margin-top: 8px; color: var(--text); font-weight: 700; }
+
+.badges { margin-top: 10px; display: flex; gap: 6px; }
+
+.badge {
+  display: none;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--hot);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.badge.on { display: inline-block; }
+
+#panel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 248px;
+  padding: 12px 14px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
+  backdrop-filter: blur(12px);
+}
+
+#panel section + section { margin-top: 12px; }
+
+#panel h2 {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--dim);
+}
+
+#panel h2 span { color: var(--text); }
+
+.seg {
+  display: flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.seg button, #newCity {
+  flex: 1;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dim);
+  font: 600 11.5px 'Outfit', sans-serif;
+  cursor: pointer;
+}
+
+.seg button:hover { color: var(--text); }
+.seg button.on { background: rgba(255, 255, 255, 0.14); color: var(--text); }
+
+input[type='range'] { width: 100%; accent-color: var(--accent); }
+
+.note { font-size: 9.5px; color: var(--dim); }
+
+.seedrow { display: flex; gap: 6px; }
+
+#seed {
+  width: 0;
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text);
+  font: 500 12px 'JetBrains Mono', monospace;
+}
+
+#newCity {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  background: var(--hot);
+  color: #fff;
+}
+
+#newCity:hover { filter: brightness(1.1); }
+
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+#hint {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  color: var(--dim);
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+#error {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #05070d;
+  font-size: 14px;
+  text-align: center;
+}
+
+#error[hidden] { display: none; }
+
+@media (max-width: 720px) {
+  #hud { top: 12px; left: 16px; }
+  h1 { font-size: 32px; margin-bottom: 10px; }
+  .kicker { font-size: 12px; }
+  .stat { min-width: 0; padding: 6px 8px; }
+  .stat b { font-size: 14px; }
+  .perf { font-size: 9.5px; }
+  #panel {
+    top: auto;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+    padding: 10px 12px;
+  }
+  #panel section + section { margin-top: 8px; }
+  #hint { display: none; }
+}
